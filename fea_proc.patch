@@ -1,0 +1,38 @@
+diff --git a/tools/flang1/flang1exe/semant.c b/tools/flang1/flang1exe/semant.c
+index 119a494b..79ecd732 100644
+--- a/tools/flang1/flang1exe/semant.c
++++ b/tools/flang1/flang1exe/semant.c
+@@ -106,6 +106,7 @@ static void clear_iface(int i, SPTR iface);
+ static bool do_fixup_param_vars_for_derived_arrays(bool, SPTR, int);
+ static void gen_unique_func_ast(int ast, SPTR sptr, SST *stkptr);
+ 
++
+ static IFACE *iface_base;
+ static int iface_avail;
+ static int iface_size;
+@@ -11401,13 +11402,21 @@ proc_dcl_init:
+         SPTR sym;
+         get_next_hash_link(sptr, 0);
+         while ((sym = get_next_hash_link(sptr, 2)) > NOSYM) {
+-          if (!POINTERG(sym) && SCG(sym) == SC_DUMMY && 
+-              SCOPEG(sym) == stb.curr_scope) {
+-            sptr = sym;
+-            break;
++          if (!POINTERG(sym) && SCG(sym) == SC_DUMMY) {
++            if (SCOPEG(sym) == stb.curr_scope) {
++              sptr = sym;
++              break;
++            } else {
++              sym = get_next_hash_link(sptr, 3);
++              if (sym == 0) {
++                SCP(sptr, SC_EXTERN);
++                break;
++              }
++            }
+           }
+         }
+       }
++        
+       if (!POINTERG(sptr) && !(attr & ET_B(ET_POINTER)) &&
+           proc_interf_sptr > NOSYM && SCG(sptr) == SC_DUMMY) {
+         IS_PROC_DUMMYP(sptr, 1);

@@ -2062,10 +2062,41 @@ compat_arg_lists(int formal, int actual)
   int i;
   bool func_chk;
   cmp_interface_flags flags;
+  
+  /* Guard against infinite recursion caused by circular interface references.
+   * This can happen when procedure dummy arguments reference interfaces that
+   * contain entry points with the same names as the dummy arguments themselves,
+   * creating a cycle in the interface dependency graph.
+   */
+  typedef struct visited_pair {
+    int formal;
+    int actual;
+    struct visited_pair *next;
+  } visited_pair_t;
+  static visited_pair_t *visited_list = NULL;
+  visited_pair_t *vp;
+  LOGICAL result;
+  
+  /* Check if we've already visited this formal-actual pair */
+  for (vp = visited_list; vp != NULL; vp = vp->next) {
+    if (vp->formal == formal && vp->actual == actual) {
+      /* Already checking this pair - assume compatible to break cycle */
+      return TRUE;
+    }
+  }
+  
+  /* Add this pair to visited list */
+  NEW(vp, visited_pair_t, sizeof(visited_pair_t));
+  vp->formal = formal;
+  vp->actual = actual;
+  vp->next = visited_list;
+  visited_list = vp;
 
   /* TODO: Not checking certain cases for now. */
-  if (STYPEG(actual) == ST_INTRIN || STYPEG(actual) == ST_GENERIC)
-    return TRUE;
+  if (STYPEG(actual) == ST_INTRIN || STYPEG(actual) == ST_GENERIC) {
+    result = TRUE;
+    goto cleanup;
+  }
 
   flags = (IGNORE_ARG_NAMES | RELAX_STYPE_CHK | RELAX_POINTER_CHK | 
            RELAX_PURE_CHK_2);
@@ -2077,7 +2108,8 @@ compat_arg_lists(int formal, int actual)
   } 
 
   if (func_chk && !compatible_characteristics(formal, actual, flags)) {
-    return FALSE;
+    result = FALSE;
+    goto cleanup;
   }
 
   if (flags & DEFER_IFACE_CHK) {
@@ -2092,11 +2124,14 @@ compat_arg_lists(int formal, int actual)
   fdscptr = DPDSCG(formal);
   adscptr = DPDSCG(actual);
   if (fdscptr == 0 || adscptr == 0 || (flags & DEFER_IFACE_CHK)) {
-    return TRUE; /* No dummy parameter descriptor; can't check. */
+    result = TRUE; /* No dummy parameter descriptor; can't check. */
+    goto cleanup;
   }
   paramct = PARAMCTG(formal);
-  if (PARAMCTG(actual) != paramct)
-    return FALSE;
+  if (PARAMCTG(actual) != paramct) {
+    result = FALSE;
+    goto cleanup;
+  }
   for (i = 0; i < paramct; i++, fdscptr++, adscptr++) {
     int farg, aarg;
 
@@ -2104,18 +2139,42 @@ compat_arg_lists(int formal, int actual)
     aarg = *(aux.dpdsc_base + adscptr);
     if (STYPEG(farg) == ST_PROC) {
       if (STYPEG(aarg) != ST_PROC && STYPEG(aarg) != ST_ENTRY &&
-          STYPEG(aarg) != ST_INTRIN && STYPEG(aarg) != ST_GENERIC)
-        return FALSE;
-      if (!compat_arg_lists(farg, aarg))
-        return FALSE;
+          STYPEG(aarg) != ST_INTRIN && STYPEG(aarg) != ST_GENERIC) {
+        result = FALSE;
+        goto cleanup;
+      }
+      if (!compat_arg_lists(farg, aarg)) {
+        result = FALSE;
+        goto cleanup;
+      }
       /* If not functions, don't try to check return type. */
       if (!DCLDG(farg) && !FUNCG(farg) && !DCLDG(aarg) && !FUNCG(aarg))
         continue;
     }
-    if (!cmpat_dtype_with_size(DTYPEG(farg), DTYPEG(aarg)))
-      return FALSE;
+    if (!cmpat_dtype_with_size(DTYPEG(farg), DTYPEG(aarg))) {
+      result = FALSE;
+      goto cleanup;
+    }
   }
-  return TRUE;
+  result = TRUE;
+
+cleanup:
+  /* Remove this pair from visited list and clean up if list is now empty */
+  if (visited_list != NULL) {
+    visited_pair_t *prev = NULL;
+    for (vp = visited_list; vp != NULL; prev = vp, vp = vp->next) {
+      if (vp->formal == formal && vp->actual == actual) {
+        if (prev == NULL) {
+          visited_list = vp->next;
+        } else {
+          prev->next = vp->next;
+        }
+        FREE(vp);
+        break;
+      }
+    }
+  }
+  return result;
 }
 
 /** \brief Check arguments passed to a user subprogram which has an interface

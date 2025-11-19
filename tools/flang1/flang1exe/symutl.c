@@ -3587,10 +3587,21 @@ get_next_hash_link(int sptr, int task)
       }
     }
   } else if (task == 2) {
-    VISITP(sptr, 1);
+    // VISITP(sptr, 1);
     for (hptr = stb.hashtb[hash]; hptr; hptr = HASHLKG(hptr)) {
-      if (hptr != sptr && !VISITG(hptr) &&
+      if (hptr != sptr &&  !VISITG(hptr) && 
           strcmp(symname, SYMNAME(hptr)) == 0) {
+        // printf("hptr:%d name:%s stype:%d scope:%d visited:%d ->", 
+        // hptr, SYMNAME(hptr), STYPEG(hptr), SCOPEG(hptr), VISITG(hptr));
+        VISITP(hptr, 1);
+        return hptr;
+        // if (strcmp(symname, SYMNAME(hptr)) == 0) {
+        //   printf("hptr:%d type:%d scope:%d->", hptr, STYPEG(hptr), SCOPEG(hptr));
+        }
+      }
+  } else if (task == 3) {
+    for (hptr = stb.hashtb[hash]; hptr; hptr = HASHLKG(hptr)) {
+      if (hptr != sptr && strcmp(symname, SYMNAME(hptr)) == 0 && !HIDDENG(hptr) && SCOPEG(hptr) == SCOPEG(sptr) && SCG(hptr) == SC_DUMMY) {
         return hptr;
       }
     }
