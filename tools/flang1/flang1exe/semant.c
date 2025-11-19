@@ -11410,8 +11410,11 @@ proc_dcl_init:
               sym = get_next_hash_link(sptr, 3);
               if (sym == 0) {
                 SCP(sptr, SC_EXTERN);
-                break;
+              } else {
+                sptr = sym;
               }
+              
+              break;
             }
           }
         }
