@@ -1,0 +1,48 @@
+diff --git a/tools/flang1/flang1exe/semant.c b/tools/flang1/flang1exe/semant.c
+index 119a494b..8a47b413 100644
+--- a/tools/flang1/flang1exe/semant.c
++++ b/tools/flang1/flang1exe/semant.c
+@@ -11401,10 +11401,21 @@ proc_dcl_init:
+         SPTR sym;
+         get_next_hash_link(sptr, 0);
+         while ((sym = get_next_hash_link(sptr, 2)) > NOSYM) {
+-          if (!POINTERG(sym) && SCG(sym) == SC_DUMMY && 
+-              SCOPEG(sym) == stb.curr_scope) {
+-            sptr = sym;
+-            break;
++          // if (!POINTERG(sym) && SCG(sym) == SC_DUMMY && 
++          //     SCOPEG(sym) == stb.curr_scope) {
++          //   sptr = sym;
++          //   break;
++          // }
++          if (!POINTERG(sym) && SCG(sym) == SC_DUMMY) {
++            if (SCOPEG(sym) == stb.curr_scope) {
++              sptr = sym;
++              break;
++            } else {
++              sym = get_next_hash_link(sptr, 3);
++              if (sym != 0) sptr = sym;
++              else SCP(sptr, SC_EXTERN);
++              break;
++            }
+           }
+         }
+       }
+diff --git a/tools/flang1/flang1exe/symutl.c b/tools/flang1/flang1exe/symutl.c
+index c9293ac1..f2caac98 100644
+--- a/tools/flang1/flang1exe/symutl.c
++++ b/tools/flang1/flang1exe/symutl.c
+@@ -3594,6 +3594,13 @@ get_next_hash_link(int sptr, int task)
+         return hptr;
+       }
+     }
++  } else if (task == 3) {
++    for (hptr = stb.hashtb[hash]; hptr; hptr = HASHLKG(hptr)) {
++      if (hptr != sptr && strcmp(symname, SYMNAME(hptr)) == 0 &&
++        !HIDDENG(hptr) && SCOPEG(hptr) == SCOPEG(sptr) && SCG(hptr) == SC_DUMMY) {
++          return hptr;
++        }
++    }
+   }
+   return 0;
+ }

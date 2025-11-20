@@ -3601,7 +3601,8 @@ get_next_hash_link(int sptr, int task)
       }
   } else if (task == 3) {
     for (hptr = stb.hashtb[hash]; hptr; hptr = HASHLKG(hptr)) {
-      if (hptr != sptr && strcmp(symname, SYMNAME(hptr)) == 0 && !HIDDENG(hptr) && SCOPEG(hptr) == SCOPEG(sptr) && SCG(hptr) == SC_DUMMY) {
+      if (hptr != sptr && strcmp(symname, SYMNAME(hptr)) == 0 &&
+        !HIDDENG(hptr) && SCOPEG(hptr) == SCOPEG(sptr) && SCG(hptr) == SC_DUMMY) {
         return hptr;
       }
     }
