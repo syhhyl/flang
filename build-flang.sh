@@ -5,12 +5,12 @@ OPTIND=1         # Reset in case getopts has been used previously in the shell.
 
 # Initialize our own variables:
 TARGET="X86"
-BUILD_TYPE="Release"
+BUILD_TYPE="Debug"
 BUILD_PREFIX="./build"
 INSTALL_PREFIX="/usr/local"
 CROSS_TARGET=""
-NPROC=1
-USE_LLVM_MAIN_SRC_DIR=""
+NPROC=4
+USE_LLVM_MAIN_SRC_DIR="-DLLVM_MAIN_SRC_DIR=../classic-flang-llvm-project/llvm"
 LLVM_CONFIG_BIN=""
 USE_CCACHE="0"
 USE_SUDO="0"
@@ -140,6 +140,7 @@ cmake $CMAKE_OPTIONS \
       -DCMAKE_Fortran_COMPILER=$INSTALL_PREFIX/bin/flang \
       -DCMAKE_Fortran_COMPILER_ID=Flang \
       -DFLANG_INCLUDE_DOCS=ON \
+      -DFLANG_INCLUDE_TESTS=ON \
       -DFLANG_LLVM_EXTENSIONS=ON \
       -DWITH_WERROR=ON \
       $TOPDIR
@@ -152,3 +153,5 @@ else
   echo "Install without sudo"
   make install VERBOSE=$VERBOSE
 fi
+
+make check-all

@@ -11390,30 +11390,52 @@ proc_dcl_init:
 
   proc_dcl_shared:
     sptr = SST_SYMG(RHS(1));
+    // printf("==start|");
     {
       /* Hide, so we can modify attribute list without exposing it */
       int attr = entity_attr.exist;
+      // printf("curr_scope:%d|", stb.curr_scope);
+      // printf("input: sptr:%d name:%s scope:%d sc:%d stype:%d|",
+      //     sptr, SYMNAME(sptr), SCOPEG(sptr), SCG(sptr), STYPEG(sptr));
+      
       if (!POINTERG(sptr) && !(attr & ET_B(ET_POINTER)) &&
           proc_interf_sptr > NOSYM && SCG(sptr) != SC_DUMMY) {
         /* Check to see if we have a dummy argument with a name that overloads 
          * another symbol name (such as a procedure name).
          */
+        // printf("in sptr:%d name:%s STYPE:%d SC:%d scope:%d\n", sptr, 
+        //     SYMNAME(sptr), STYPEG(sptr), SCG(sptr), SCOPEG(sptr));
+
+        // printf("1: sptr:%d name:%s scope:%d sc:%d stype:%d|",
+        //   sptr, SYMNAME(sptr), SCOPEG(sptr), SCG(sptr), STYPEG(sptr));
+
         SPTR sym;
+        // int found = 0;
         get_next_hash_link(sptr, 0);
         while ((sym = get_next_hash_link(sptr, 2)) > NOSYM) {
           if (!POINTERG(sym) && SCG(sym) == SC_DUMMY && 
               SCOPEG(sym) == stb.curr_scope) {
             sptr = sym;
+            // found = 1;
             break;
           }
+          // VISITP(sym, 1);
         }
+        // if (!found) SCP(sptr, SC_EXTERN);
       }
+      
+
+
       if (!POINTERG(sptr) && !(attr & ET_B(ET_POINTER)) &&
           proc_interf_sptr > NOSYM && SCG(sptr) == SC_DUMMY) {
         IS_PROC_DUMMYP(sptr, 1);
+        // printf("2: sptr:%d name:%s scope:%d, sc:%d stype:%d|",
+        //   sptr, SYMNAME(sptr), SCOPEG(sptr), SCG(sptr), STYPEG(sptr));
       }
       if (POINTERG(sptr)) {
-        attr |= ET_B(ET_POINTER);
+        attr |= ET_B(ET_POINTER); 
+        // printf("3: sptr:%d name:%s scope:%d sc:%d stype:%d|",
+        //   sptr, SYMNAME(sptr), SCOPEG(sptr), SCG(sptr), STYPEG(sptr));
       } 
     if (!IS_PROC_DUMMYG(sptr) && IS_INTERFACEG(proc_interf_sptr) &&
         !IS_PROC_PTR_IFACEG(proc_interf_sptr)) {
@@ -11426,6 +11448,10 @@ proc_dcl_init:
        * This is only needed  by the LLVM back-end because the bridge uses the 
        * interface to generate the LLVM IR for the actual arguments. 
        */
+      
+      // printf("4: sptr:%d name:%s scope:%d, sc:%d stype:%d|",
+      //   sptr, SYMNAME(sptr), SCOPEG(sptr), SCG(sptr), STYPEG(sptr));
+
       char * buf;
       int len;
       SPTR sym;
@@ -11462,6 +11488,10 @@ proc_dcl_init:
       sptr =
           setup_procedure_sym(sptr, proc_interf_sptr, attr, entity_attr.access);
     }
+    
+    // printf("out: sptr:%d name:%s scope:%d, sc:%d stype:%d\n",
+    //   sptr, SYMNAME(sptr), SCOPEG(sptr), SCG(sptr), STYPEG(sptr));
+    // printf("==end==\n");
 
     /* Error while creating proc symbol */
     if (sptr == 0)
@@ -12514,7 +12544,6 @@ proc_dcl_init:
 */
 static void
 gen_unique_func_ast(int ast, SPTR sptr, SST *stkptr)
-
 {
   SPTR sym, orig_sym = sym_of_ast(ast);
 
