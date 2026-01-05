@@ -11400,24 +11400,18 @@ proc_dcl_init:
          * another symbol name (such as a procedure name).
          */
         SPTR sym;
+        int found = 0;
         get_next_hash_link(sptr, 0);
         while ((sym = get_next_hash_link(sptr, 2)) > NOSYM) {
-          if (!POINTERG(sym) && SCG(sym) == SC_DUMMY) {
-            if (SCOPEG(sym) == stb.curr_scope) {
-              sptr = sym;
-              break;
-            } else {
-              sym = get_next_hash_link(sptr, 3);
-              if (sym == 0) {
-                SCP(sptr, SC_EXTERN);
-              } else {
-                sptr = sym;
-              }
-              
-              break;
-            }
+          if (!POINTERG(sym) && SCG(sym) == SC_DUMMY &&
+              SCOPEG(sym) == stb.curr_scope) {
+            sptr = sym;
+            found = 1;
+            break;
           }
+          VISITP(sym, 1);
         }
+        if (!found) SCP(sptr, SC_EXTERN);
       }
         
       if (!POINTERG(sptr) && !(attr & ET_B(ET_POINTER)) &&

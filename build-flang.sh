@@ -10,12 +10,12 @@ BUILD_PREFIX="./build"
 INSTALL_PREFIX="/usr/local"
 CROSS_TARGET=""
 NPROC=1
-USE_LLVM_MAIN_SRC_DIR=""
+USE_LLVM_MAIN_SRC_DIR="../classic-flang-llvm-project/llvm"
 LLVM_CONFIG_BIN=""
 USE_CCACHE="0"
 USE_SUDO="0"
 EXTRA_CMAKE_OPTS=""
-VERBOSE=""
+VERBOSE="1"
 
 set -e # Exit the script on first error.
 
@@ -140,11 +140,14 @@ cmake $CMAKE_OPTIONS \
       -DCMAKE_Fortran_COMPILER=$INSTALL_PREFIX/bin/flang \
       -DCMAKE_Fortran_COMPILER_ID=Flang \
       -DFLANG_INCLUDE_DOCS=ON \
+      -DFLANG_INCLUDE_TESTS=ON \
       -DFLANG_LLVM_EXTENSIONS=ON \
       -DWITH_WERROR=ON \
       $TOPDIR
 set +x
 make -j$NPROC VERBOSE=$VERBOSE
+make check-all VERBOSE=$VERBOSE
+
 if [ $USE_SUDO == "1" ]; then
   echo "Install with sudo"
   sudo make install VERBOSE=$VERBOSE
@@ -152,3 +155,4 @@ else
   echo "Install without sudo"
   make install VERBOSE=$VERBOSE
 fi
+
