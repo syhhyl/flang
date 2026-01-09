@@ -3836,6 +3836,9 @@ rewrite_this:
 void
 rewrite_calls(void)
 {
+#ifdef Debug
+  printf("rewrite_calls\n");
+#endif
   int std, stdnext, stdnew;
   int ast, rhs, lhs, astnew;
   int args, a;
@@ -3866,6 +3869,7 @@ rewrite_calls(void)
     arg_gbl.inforall = FALSE;
     gbl.lineno = STD_LINENO(std);
     ast = STD_AST(std);
+    dbg_print_ast(ast, NULL);
     switch (type = A_TYPEG(ast)) {
     case A_ASN:
       rhs = A_SRCG(ast);
@@ -4000,6 +4004,12 @@ rewrite_calls(void)
         }
       } else if (A_TKNG(ast) == TK_ALLOCATE) {
         int a, sptr2, astmem;
+
+        // int newsrc;
+        // newsrc = rewrite_sub_ast(A_SRCG(ast), 0);
+        // if (newsrc != A_SRCG(ast))
+        //   A_SRCP(ast, newsrc);
+
         sptr_lhs = memsym_of_ast(A_SRCG(ast));
         if (STYPEG(sptr_lhs) == ST_MEMBER) {
           astmem = A_SRCG(ast);

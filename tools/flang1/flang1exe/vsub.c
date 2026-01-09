@@ -64,6 +64,7 @@ static LOGICAL can_ptr_olap(int, int);
 void
 rewrite_forall(void)
 {
+  printf("rewrite_forall\n");
   int std, stdnext;
   int ast;
   int parallel_depth, task_depth;
@@ -78,6 +79,7 @@ rewrite_forall(void)
     arg_gbl.used = FALSE;
     arg_gbl.inforall = FALSE;
     ast = STD_AST(std);
+    dbg_print_ast(ast, NULL);
     switch (A_TYPEG(ast)) {
     case A_MP_PARALLEL:
       ++parallel_depth;
@@ -1158,6 +1160,7 @@ static struct {
 void
 rewrite_forall_pure(void)
 {
+  printf("rewrite_forall_pure\n");
   int std, ast, asn;
   int stdnext;
   int expr;
@@ -1166,6 +1169,7 @@ rewrite_forall_pure(void)
     stdnext = STD_NEXT(std);
     gbl.lineno = STD_LINENO(std);
     ast = STD_AST(std);
+    dbg_print_ast(ast, NULL);
     if (A_TYPEG(ast) == A_ASN)
       scatter_dependency_assumsz(std);
     if (A_TYPEG(ast) == A_FORALL) {

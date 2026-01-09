@@ -14,7 +14,7 @@ USE_LLVM_MAIN_SRC_DIR="-DLLVM_MAIN_SRC_DIR=../classic-flang-llvm-project/llvm"
 LLVM_CONFIG_BIN=""
 USE_CCACHE="0"
 USE_SUDO="0"
-EXTRA_CMAKE_OPTS=""
+EXTRA_CMAKE_OPTS="Debug"
 VERBOSE=""
 
 set -e # Exit the script on first error.

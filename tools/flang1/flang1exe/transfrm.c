@@ -584,6 +584,7 @@ in_wheresymlist(ITEM *list, int sptr)
 static void
 rewrite_block_where(void)
 {
+  printf("rewrite_block_where\n");
   int std, stdnext, std1;
   int shape;
   int ast, ast1, ast2, lhs, nestedwhere;
@@ -675,6 +676,7 @@ rewrite_block_where(void)
       }
     } break;
     case A_WHERE:
+      dbg_print_ast(ast, NULL);
       if (!A_IFSTMTG(ast)) {
         if (wherestack.topwhere == 0) {
           int std1, ast1, ast2, wherenest;
@@ -974,6 +976,7 @@ contains_forall_index(int ast, int forall_list)
 static void
 rewrite_block_forall(void)
 {
+  printf("rewrite_block_forall\n");
   int std, stdnext, std1;
   int ast;
   int list, stmt;
@@ -994,6 +997,7 @@ rewrite_block_forall(void)
     stdnext = STD_NEXT(std);
     gbl.lineno = STD_LINENO(std);
     ast = STD_AST(std);
+    dbg_print_ast(ast, NULL);
     if (A_TYPEG(ast) == A_FORALL && !A_IFSTMTG(ast)) {
       forallb_std = std;
       stack[top] = forallb_std;
@@ -1269,6 +1273,7 @@ constant_shape(int shape)
 static void
 rewrite_into_forall(void)
 {
+  printf("rewrite_into_forall\n");
   int std, stdnext;
   int shape;
   int ast, ast1, ast2, lhs, rhs;
@@ -1298,6 +1303,9 @@ rewrite_into_forall(void)
     stdnext = STD_NEXT(std);
     gbl.lineno = STD_LINENO(std);
     ast = STD_AST(std);
+#ifdef Debug
+    dbg_print_ast(ast, NULL);
+#endif
     switch (A_TYPEG(ast)) {
     case A_WHERE:
       if (A_IFSTMTG(ast)) {
@@ -1305,8 +1313,9 @@ rewrite_into_forall(void)
           error(512, 4, STD_LINENO(std), CNULL, CNULL);
         shape1 = A_SHAPEG(A_IFEXPRG(ast));
         shape2 = A_SHAPEG(A_DESTG(A_IFSTMTG(ast)));
-        if (!conform_shape(shape1, shape2))
+        if (!conform_shape(shape1, shape2)) {
           error(511, 3, STD_LINENO(std), CNULL, CNULL);
+        }
         /* single-stmt where */
         /* create forall stmt */
         /* forall is normalized with respect to the LHS expression */
