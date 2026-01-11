@@ -4005,10 +4005,10 @@ rewrite_calls(void)
       } else if (A_TKNG(ast) == TK_ALLOCATE) {
         int a, sptr2, astmem;
 
-        // int newsrc;
-        // newsrc = rewrite_sub_ast(A_SRCG(ast), 0);
-        // if (newsrc != A_SRCG(ast))
-        //   A_SRCP(ast, newsrc);
+        int newsrc;
+        newsrc = rewrite_sub_ast(A_SRCG(ast), 0);
+        if (newsrc != A_SRCG(ast))
+          A_SRCP(ast, newsrc);
 
         sptr_lhs = memsym_of_ast(A_SRCG(ast));
         if (STYPEG(sptr_lhs) == ST_MEMBER) {
